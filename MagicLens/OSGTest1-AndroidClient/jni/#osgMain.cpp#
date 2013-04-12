@@ -1,0 +1,248 @@
+#include "osgMain.h"
+
+using namespace osg;
+using namespace std;
+
+osgMain::osgMain()
+{
+}
+
+void osgMain::draw()
+{
+    osg::Matrixd transNode;
+    
+
+    /*Trying to print the object matrix position every frame
+     *
+     *   osg::ref_ptr<osg::MatrixTransform> mTransform = new osg::MatrixTransform;
+     *   m=mTransform->getMatrix();
+     *   Vec3 objTrans = transNode.getTrans();
+     *   Quat objQuad = transNode.getRotate();
+     *   __android_log_print(ANDROID_LOG_INFO,"Orientation","%f, %f, %f, %f",objQuad.x(),objQuad.y(),objQuad.z(),objQuad.w());
+     *   __android_log_print(ANDROID_LOG_INFO,"Position","%f, %f, %f",objTrans.x(),objTrans.y() ,objTrans.z()); */
+
+    //Call recvMSG function every frame to receive the object matrix position every frame
+    recvMSG();
+
+    //Store the array that we receive from the server on transNode matrix
+    for (int i=0; i<4; ++i)
+         for (int j=0; j<4; ++j)
+             transNode(i,j) = matrix[i*4+j];
+
+    /*Trying to print transNode matrix every frame
+     * for (int i=0; i<4; ++i)
+     *      for (int j=0; j<4; ++j)
+     *          {
+     *            __android_log_print(ANDROID_LOG_INFO,"matrix","%f  ",transNode(i,j));
+     *          }  */
+
+    //Set the matrix in mTransform
+    mTransform->setMatrix(transNode);
+	viewer->frame();
+	mTransform->setMatrix(xrot);
+}
+
+
+void osgMain::initOSG(int width, int height)
+{
+
+	root=new osg::Group();
+	mTransform=new osg::MatrixTransform;
+
+	viewer = new osgViewer::Viewer();
+	viewer->setUpViewerAsEmbeddedInWindow(0, 0, width, height);
+	osg::ref_ptr<osg::Group> root = new osg::Group;
+	viewer->realize();
+
+	//the same as the example
+    state = root->getOrCreateStateSet();
+    state->setMode(GL_LIGHTING, osg::StateAttribute::ON);
+    state->setMode(GL_DEPTH_TEST, osg::StateAttribute::ON);
+    state->setMode(GL_CULL_FACE, osg::StateAttribute::ON);
+
+    _manipulator = new osgGA::KeySwitchMatrixManipulator;
+
+    //Related to the camera settings
+    _manipulator->addMatrixManipulator( '1', "Trackball", new osgGA::TrackballManipulator() );
+    //_manipulator->addMatrixManipulator( '2', "Flight", new osgGA::FlightManipulator() );
+    //_manipulator->addMatrixManipulator( '3', "Drive", new osgGA::DriveManipulator() );
+    //_manipulator->addMatrixManipulator( '4', "Terrain", new osgGA::TerrainManipulator() );
+    //_manipulator->addMatrixManipulator( '5', "Orbit", new osgGA::OrbitManipulator() );
+    _manipulator->addMatrixManipulator( '6', "FirstPerson", new osgGA::FirstPersonManipulator() );
+    // _manipulator->addMatrixManipulator( '7', "Spherical", new osgGA::SphericalManipulator() );
+
+	__android_log_write(ANDROID_LOG_DEBUG, "LOG_TAG", "*** Welcome to Magic Lens Application ***");
+
+    viewer->setCameraManipulator( _manipulator.get() );
+    viewer->getViewerStats()->collectStats("scene", true);
+    initialized = true;
+
+    /*osg::ref_ptr<osg::Geode> geode = new osg::Geode();
+
+    ShapeDrawable* sd;
+
+    // Cone
+    sd = new ShapeDrawable;
+    Cone* cone = new Cone(Vec3(8.0f, 0.0f, 0.0f), 2.0f, 3.0f);
+    cone->setRotation(Quat(0.0f, -0.5f, 0.5f, 1.0f));
+    sd->setShape(cone);
+    //sd->setColor(blue);
+    geode->addDrawable(sd);
+
+    // Box
+    sd = new osg::ShapeDrawable();
+    Box* box = new Box(Vec3(4.0f, 0.0f, 0.0f), 2.0f);
+    box->setRotation(Quat(1.0f, 1.0f, 0.0f, 1.0f));
+    sd->setShape(box);
+    //sd->setColor(yellow);
+    geode->addDrawable(sd);
+
+    Vec4 yellow(1.0, 1.0, 0.0, 1.0);
+    osg::ref_ptr<osg::Material> mat=new osg::Material;
+    mat->setDiffuse(osg::Material::FRONT_AND_BACK,yellow);
+    geode->getOrCreateStateSet()->setAttributeAndModes(mat.get());
+
+
+    viewer->home();
+	//__android_log_write(ANDROID_LOG_DEBUG,"OK","OK");
+osgMain
+	osg::ref_ptr<osgGA::TrackballManipulator> TM=new osgGA::TrackballManipulator;
+	viewer->setCameraManipulator(TM);
+
+	mt->addChild(geode);
+
+	root->addChild(mt);
+
+	root->addChild( geode.get() );
+	viewer->setSceneData( root.get() );
+
+	//set the camera position and direction
+	viewer->getCamera()->setViewMatrixAsLookAt(osg::Vec3(0,-100,0),osg::Vec3(0,0,0),osg::Vec3(0,0,1));
+
+	//set background color to be red
+	viewer->getCamera()->setClearColor(osg::Vec4(1.0f,1.0f,0.0f,1.0f));*/
+
+
+	//osg::ref_ptr<osg::Node> model1 = osviewer geteventqueue mousegDB::readNodeFile( "cessna.osg" );
+	//osg::ref_ptr<osg::Node> model2 = osgDB::readNodeFile( "/mnt/sdcard/OSG_Model/cow.osg" );
+    //osg::ref_ptr<osg::Node> model2 = osgDB::readNodeFile( "/mnt/sdcard/OSG_Model/cow.osg" );
+
+    /*Load osg object this is the path /mnt/sdcard/OSG_Model/fileName,
+     *we can find it on the memory card on the android device*/
+    osg::ref_ptr<osg::Node> model1 = osgDB::readNodeFile( "/mnt/sdcard/MagicLensObject/cessna.osg" );
+
+    //set background color to be black
+    viewer->getCamera()->setClearColor(osg::Vec4(0.0f,0.0f,0.0f,1.0f));
+
+    //Add the object to the matrix transform
+    mTransform->addChild( model1.get() );
+    //Add the matrix transform to the root
+	root->addChild( mTransform.get() );
+	//Add the root to the Viewer
+    viewer->setSceneData(root.get());
+
+    _manipulator->getNode();
+
+    viewer->home();
+}
+
+//Press event function
+void osgMain::mouseButtonPressEvent(float x,float y,int button)
+{
+    viewer->getEventQueue()->mouseButtonPress(x, y, button);
+}
+
+//Release event function
+void osgMain::mouseButtonReleaseEvent(float x,float y,int button)
+{
+    viewer->getEventQueue()->mouseButtonRelease(x, y, button);
+}
+
+//Move event function
+void osgMain::mouseMoveEvent(float x,float y){
+    viewer->getEventQueue()->mouseMotion(x, y);
+}
+
+
+//Start client function
+void osgMain::startClient()
+{
+	 /* now fill in sockaddr_in for remote address */
+	    serv_addr.sin_family = AF_INET;
+	    /* save the server IP (input from Java */
+	    serv_addr.sin_addr.s_addr = inet_addr(serverIP);
+	    /* set port */
+	    serv_addr.sin_port = htons(PORT);
+	    memset(serv_addr.sin_zero, 0, 8);
+
+	    /* create local stream socket */
+	    client_skt = socket(AF_INET, SOCK_STREAM, 0);
+	    if (client_skt < 0) {
+	    	__android_log_print(ANDROID_LOG_ERROR,"jni client","socket creation error");
+	        exit(-1);
+	    }
+
+	    int enableReuse = 1;
+	    setsockopt( client_skt, SOL_SOCKET,  SO_REUSEADDR, &enableReuse, sizeof(enableReuse));
+
+	    /* bind local socket to any port number */
+	    local_addr.sin_family = AF_INET;
+	    local_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	    //local_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+	    local_addr.sin_port = htons(PORT);
+	    memset(local_addr.sin_zero, 0, 8);
+
+	    rc = bind(client_skt, (struct sockaddr *) &local_addr, sizeof(local_addr));
+
+	    if (rc < 0)
+	    {
+	    	__android_log_print(ANDROID_LOG_ERROR,"jni client","socket bind error");
+	        exit(1);
+	    }
+	    __android_log_print(ANDROID_LOG_INFO,"jni client","client start finished");
+
+}
+
+//Connect server function
+void osgMain::connectServer()
+{
+	/* connect to server */
+	__android_log_print(ANDROID_LOG_INFO,"jni client","connect to server starts");
+	rc = connect(client_skt, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
+
+    if (rc < 0)
+    {
+    	__android_log_print(ANDROID_LOG_ERROR,"jni client","socket connect to server error");
+	__android_log_print(ANDROID_LOG_ERROR,"jni client","Error number: %d",errno);
+        exit(1);
+    }
+    __android_log_print(ANDROID_LOG_ERROR,"jni client","server connected");
+}
+
+void osgMain::sendMSG()
+{
+	if ( (numbytes = send(client_skt, "hello!", strlen("hello!"),0) )== -1 ){
+		__android_log_print(ANDROID_LOG_ERROR,"jni client","send error");
+		//exit(1);
+	}
+
+}
+
+void osgMain::recvMSG()
+{
+	numbytes = recv(client_skt, buf, bufferSize,0);
+	if ( numbytes == -1 ){
+		//__android_log_print(ANDROID_LOG_ERROR,"jni client","recv error");
+		//exit(1);
+	}
+	else
+	{
+		memcpy (matrix, buf, numbytes);
+		for(int i=0;i<4;i++)
+			__android_log_print(ANDROID_LOG_INFO,"matrix","%f, %f, %f, %f",matrix[i*4],matrix[i*4+1],matrix[i*4+2],matrix[i*4+3]);
+	}
+}
+
+osgMain::~osgMain()
+{
+}

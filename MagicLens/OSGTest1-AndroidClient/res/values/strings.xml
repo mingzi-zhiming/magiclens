@@ -1,0 +1,12 @@
+<resources>
+
+    <string name="app_name">OSGTest1</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="menu_settings">Start Client</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="menu_settings_1">Connect Server</string>
+    <string name="menu_settings_2">Set IP</string>
+    <string name="menu_settings_3">Send Message</string>
+    <string name="menu_settings_4">Recevie Message</string>
+
+</resources>
